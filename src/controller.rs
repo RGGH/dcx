@@ -1,12 +1,22 @@
 use docx_rs::*;
 use std::fs::*;
+use std::fs;
 use std::io::Read;
+use std::path::Path;
 
 use docx_rs::{Docx, Header, Paragraph, Pic, Run};
 
-pub fn hello(paratxt : &str, headline:&str) -> Result<(), DocxError> {
-    let path = std::path::Path::new("./hello2.docx");
-    let file = std::fs::File::create(path).unwrap();
+pub fn hello(paratxt: &str, headline: &str) -> Result<(), DocxError> {
+    let file_path = std::path::Path::new("./myfiles/hello2.docx");
+    let path = Path::new(file_path);
+    
+    // Create parent directory if it doesn't exist
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+
+    // Create or open the file
+    let file = File::create(file_path).unwrap();
 
     // Make sure you have the correct directory and image
     let banner_pic = Pic::new(include_bytes!("./images/banner.jpg"));
@@ -15,7 +25,7 @@ pub fn hello(paratxt : &str, headline:&str) -> Result<(), DocxError> {
     let style1 = Style::new("Heading1", StyleType::Paragraph)
         .name("Heading1")
         .align(AlignmentType::Center)
-         .fonts(RunFonts::new().ascii("Arial"));
+        .fonts(RunFonts::new().ascii("Arial"));
 
     let table = Table::new(vec![TableRow::new(vec![
         TableCell::new().add_paragraph(Paragraph::new().add_run(Run::new().add_text("Left Stuff"))),
@@ -26,9 +36,12 @@ pub fn hello(paratxt : &str, headline:&str) -> Result<(), DocxError> {
         .add_paragraph(Paragraph::new().add_run(Run::new().add_image(banner_pic.clone())));
     let out = Vec::new();
 
-    let footer =
-        Footer::new().add_paragraph(Paragraph::new().add_run(Run::new().add_text("Check out my Python360 channel on YouTube for more Docx creation code")));
-
+    let footer = Footer::new().add_paragraph(
+        Paragraph::new().add_run(
+            Run::new()
+                .add_text("Check out my Python360 channel on YouTube for more Docx creation code"),
+        ),
+    );
 
     // Add An Image !
     let mut img = File::open("./images/cat.jpg").unwrap();
@@ -38,7 +51,8 @@ pub fn hello(paratxt : &str, headline:&str) -> Result<(), DocxError> {
     let pic = Pic::new(&buf).size(320 * 9525, 240 * 9525);
 
     let p1 = Paragraph::new()
-        .add_run(Run::new().add_text(" Hello World")).size(36)
+        .add_run(Run::new().add_text(" Hello World"))
+        .size(36)
         .style("Heading1");
 
     Docx::new()
